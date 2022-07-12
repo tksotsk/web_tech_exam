@@ -10,25 +10,44 @@
     <% connection = PG::connect(dbname: "goya") %>
     <% connection.internal_encoding = "UTF-8" %>
 
-    <form action="indicate.cgi" method="POST">
-       下記に文字を入力してください<br><br>
-      <input type="text"  name="input" ><br>
-      <input type="submit" name="送信" >
-    </form>
 
-    <% result = connection.exec("select weight, give_for from crops;") %>
-    <% data = [] %>
 
-    <% result.each do |record| %>
-      <%  data << "ゴーヤの大きさ：#{record["weight"]}　売った相手：#{record["give_for"]}" %>
+    <% result_nj = connection.exec("SELECT length, weight, quality, date, price FROM crops JOIN prices ON crops.give_for = prices.give_for WHERE crops.give_for != '自家消費';") %>
+    <% data_nj = [] %>
+
+
+
+
+    <% result_nj.each do |record| %>
+      <%  data_nj << "ゴーヤの長さ：#{record["length"]} ゴーヤの大きさ：#{record["weight"]} ゴーヤの品質：#{record["quality"]} 日にち：#{record["date"]} 値段：#{record["price"]}" %>
     <% end %>
 
-    <form action="goya.cgi" method="POST">
-       下記のボタンを押すと、ゴーヤの大きさと売った相手の情報ページに飛びます<br><br>
+
+
+    <% result_qf = connection.exec("SELECT length, weight, crops.give_for, date, price FROM crops JOIN prices ON crops.give_for = prices.give_for WHERE quality = 'false';") %>
+    <% data_qf = [] %>
+
+    <% result_qf.each do |record| %>
+      <%  data_qf << "ゴーヤの長さ：#{record["length"]} ゴーヤの大きさ：#{record["weight"]} 譲渡先：#{record["crops.give_for"]} 日にち：#{record["date"]} 値段：#{record["price"]}" %>
+    <% end %>
+
+
+    <form action="goya_nj.cgi" method="POST">
+       下記のボタンを押すと、ゴーヤの長さ、大きさ、品質、日にち、値段の情報のページに飛びます<br><br>
        <!-- valueには、送りたいデータを代入する -->
        <!-- name="goya"を、情報の目印とする -->
-      <input type="text" name="goya" value="<%= data.join(' ') %>">
-      <input type="submit" name="送信" >
+       <input type="text" name="goya_nj" value="<%= data_nj.join(' ') %>">
+       <input type="submit" name="送信" >
+
+    </form>
+
+    <form action="goya_qf.cgi" method="POST">
+         下記のボタンを押すと、ゴーヤの長さ、大きさ、譲渡先、日にち、値段の情報ページに飛びます<br><br>
+         <!-- valueには、送りたいデータを代入する -->
+         <!-- name="goya"を、情報の目印とする -->
+        <input type="text" name="goya_qf" value="<%= data_qf.join(' ') %>">
+        <input type="submit" name="送信" >
+
     </form>
   </body>
 </html>
